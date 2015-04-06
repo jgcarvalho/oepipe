@@ -14,18 +14,18 @@ var distributed bool
 
 func conformers(ligandsDirPtr *string) {
 	sdfs, _ := filepath.Glob(*ligandsDirPtr + "/*.sdf")
-	fmt.Println(sdfs)
+	// fmt.Println(sdfs)
 	os.Mkdir("./conformers", 0777)
 	for _, f := range sdfs {
-		outfile := "./conformers/" + filepath.Base(f)[:len(filepath.Base(f))-4] + ".oeb.gz"
-		fmt.Println(outfile)
-		// Change from 100 to 100000
+		prefix := "./conformers/" + strings.TrimSuffix(filepath.Base(f), ".sdf")
+		outfile := prefix + ".oeb.gz"
+		// fmt.Println(outfile)
 		if distributed {
-			cmd := exec.Command("srun", "omega2", "-in", f, "-out", outfile, "-sdEnergy", "-ewindow", "25.0", "-maxconfs", "100000", "-rms", "0.1")
+			cmd := exec.Command("srun", "omega2", "-in", f, "-out", outfile, "-sdEnergy", "-ewindow", "25.0", "-maxconfs", "100000", "-rms", "0.1", "-prefix", prefix)
 			cmd.Start()
 			defer cmd.Wait()
 		} else {
-			cmd := exec.Command("omega2", "-in", f, "-out", outfile, "-sdEnergy", "-ewindow", "25.0", "-maxconfs", "100", "-rms", "0.1")
+			cmd := exec.Command("omega2", "-in", f, "-out", outfile, "-sdEnergy", "-ewindow", "25.0", "-maxconfs", "100000", "-rms", "0.1", "-prefix", prefix)
 			cmd.Run()
 		}
 	}
@@ -33,7 +33,7 @@ func conformers(ligandsDirPtr *string) {
 
 func docking(receptorsDirPtr *string) {
 	conformers, _ := filepath.Glob("./conformers/*.oeb.gz")
-	fmt.Println(conformers)
+	// fmt.Println(conformers)
 	outdir := "./docking/" + filepath.Base(*receptorsDirPtr) + "/"
 	os.MkdirAll(outdir, 0777)
 	for _, cf := range conformers {
@@ -46,7 +46,6 @@ func docking(receptorsDirPtr *string) {
 			cmd.Start()
 			defer cmd.Wait()
 		} else {
-			// Change from Low to High
 			cmd := exec.Command("hybrid", "-receptor", *receptorsDirPtr+"/*", "-dbase", cf, "-docked_molecule_file", outfile, "-score_file", scorefile, "-dock_resolution", "Low", "-num_poses", "25", "-save_component_scores", "-annotate_scores", "-prefix", prefix)
 			cmd.Run()
 		}
@@ -62,11 +61,10 @@ func optimize(receptorsDirPtr *string) {
 		rec = getBestReceptor(dck)
 		prefix := outdir + strings.TrimSuffix(filepath.Base(dck), "_docked.oeb.gz")
 		if distributed {
-			cmd := exec.Command("srun", "szybki", "-p", rec, "-in", dck, "-prefix", prefix, "-residue", "1", "-protein_elec", "PB", "-am1bcc")
+			cmd := exec.Command("srun", "szybki", "-p", rec, "-in", dck, "-prefix", prefix, "-residue", "3", "-protein_elec", "PB", "-am1bcc")
 			cmd.Start()
 			defer cmd.Wait()
 		} else {
-			// change residue from 1 to 3
 			cmd := exec.Command("szybki", "-p", rec, "-in", dck, "-prefix", prefix, "-residue", "1", "-protein_elec", "PB", "-am1bcc")
 			cmd.Run()
 		}
@@ -143,22 +141,28 @@ func main() {
 	fmt.Println("Optimize docked conformers", *optimizePtr)
 
 	if *conformersPtr {
+		fmt.Println("#############################################################")
 		fmt.Println("Generating conformers")
 		conformers(ligandsDirPtr)
 	}
 	if *dockingPtr {
+		fmt.Println("#############################################################")
 		fmt.Println("Docking ligands")
 		docking(receptorsDirPtr)
 	}
 	if *entropyISPtr {
+		fmt.Println("#############################################################")
 		fmt.Println("Estimating entropy in solution")
 		entropyInSolution()
 	}
 	if *entropyBPtr {
+		fmt.Println("#############################################################")
 		fmt.Println("Estimating entropy bounded")
 		entropyBounded(receptorsDirPtr)
 	}
 	if *optimizePtr {
+		fmt.Println("#############################################################")
+		fmt.Println("Optimizing bounded ligands")
 		optimize(receptorsDirPtr)
 	}
 
