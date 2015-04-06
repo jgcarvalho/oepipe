@@ -19,7 +19,7 @@ func conformers(ligandsDirPtr *string) {
 	for _, f := range sdfs {
 		prefix := "./conformers/" + strings.TrimSuffix(filepath.Base(f), ".sdf")
 		outfile := prefix + ".oeb.gz"
-		// fmt.Println(outfile)
+		fmt.Println(outfile)
 		if distributed {
 			cmd := exec.Command("srun", "omega2", "-in", f, "-out", outfile, "-sdEnergy", "-ewindow", "25.0", "-maxconfs", "100000", "-rms", "0.1", "-prefix", prefix)
 			cmd.Start()
