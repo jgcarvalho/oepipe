@@ -46,7 +46,7 @@ func docking(receptorsDirPtr *string) {
 			cmd.Start()
 			defer cmd.Wait()
 		} else {
-			cmd := exec.Command("hybrid", "-receptor", *receptorsDirPtr+"/*", "-dbase", cf, "-docked_molecule_file", outfile, "-score_file", scorefile, "-dock_resolution", "Low", "-num_poses", "25", "-save_component_scores", "-annotate_scores", "-prefix", prefix)
+			cmd := exec.Command("hybrid", "-receptor", *receptorsDirPtr+"/*", "-dbase", cf, "-docked_molecule_file", outfile, "-score_file", scorefile, "-dock_resolution", "High", "-num_poses", "25", "-save_component_scores", "-annotate_scores", "-prefix", prefix)
 			cmd.Run()
 		}
 	}
@@ -65,7 +65,7 @@ func optimize(receptorsDirPtr *string) {
 			cmd.Start()
 			defer cmd.Wait()
 		} else {
-			cmd := exec.Command("szybki", "-p", rec, "-in", dck, "-prefix", prefix, "-residue", "1", "-protein_elec", "PB", "-am1bcc")
+			cmd := exec.Command("szybki", "-p", rec, "-in", dck, "-prefix", prefix, "-residue", "3", "-protein_elec", "PB", "-am1bcc")
 			cmd.Run()
 		}
 	}
