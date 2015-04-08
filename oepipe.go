@@ -22,8 +22,8 @@ func conformers(ligandsDirPtr *string) {
 		fmt.Println(outfile)
 		if distributed {
 			cmd := exec.Command("srun", "omega2", "-in", f, "-out", outfile, "-sdEnergy", "-ewindow", "25.0", "-maxconfs", "100000", "-rms", "0.1", "-prefix", prefix)
-			cmd.Start()
-			defer cmd.Wait()
+			cmd.Run()
+			//defer cmd.Wait()
 		} else {
 			cmd := exec.Command("omega2", "-in", f, "-out", outfile, "-sdEnergy", "-ewindow", "25.0", "-maxconfs", "100000", "-rms", "0.1", "-prefix", prefix)
 			cmd.Run()
@@ -43,8 +43,8 @@ func docking(receptorsDirPtr *string) {
 		fmt.Println(outfile)
 		if distributed {
 			cmd := exec.Command("srun", "hybrid", "-receptor", *receptorsDirPtr+"/*", "-dbase", cf, "-docked_molecule_file", outfile, "-score_file", scorefile, "-dock_resolution", "High", "-num_poses", "25", "-save_component_scores", "-annotate_scores", "-prefix", prefix)
-			cmd.Start()
-			defer cmd.Wait()
+			cmd.Run()
+			//defer cmd.Wait()
 		} else {
 			cmd := exec.Command("hybrid", "-receptor", *receptorsDirPtr+"/*", "-dbase", cf, "-docked_molecule_file", outfile, "-score_file", scorefile, "-dock_resolution", "High", "-num_poses", "25", "-save_component_scores", "-annotate_scores", "-prefix", prefix)
 			cmd.Run()
@@ -62,8 +62,8 @@ func optimize(receptorsDirPtr *string) {
 		prefix := outdir + strings.TrimSuffix(filepath.Base(dck), "_docked.oeb.gz")
 		if distributed {
 			cmd := exec.Command("srun", "szybki", "-p", rec, "-in", dck, "-prefix", prefix, "-residue", "3", "-protein_elec", "PB", "-am1bcc")
-			cmd.Start()
-			defer cmd.Wait()
+			cmd.Run()
+			//defer cmd.Wait()
 		} else {
 			cmd := exec.Command("szybki", "-p", rec, "-in", dck, "-prefix", prefix, "-residue", "3", "-protein_elec", "PB", "-am1bcc")
 			cmd.Run()
@@ -80,8 +80,8 @@ func entropyInSolution() {
 		fmt.Println(prefix)
 		if distributed {
 			cmd := exec.Command("srun", "szybki", "-entropy", "AN", "-sheffield", "-prefix", prefix, cf)
-			cmd.Start()
-			defer cmd.Wait()
+			cmd.Run()
+			//defer cmd.Wait()
 		} else {
 			cmd := exec.Command("szybki", "-entropy", "AN", "-sheffield", "-prefix", prefix, cf)
 			cmd.Run()
@@ -99,15 +99,13 @@ func entropyBounded(receptorsDirPtr *string) {
 		prefix := outdir + strings.TrimSuffix(filepath.Base(dck), "_docked.oeb.gz")
 		if distributed {
 			cmd := exec.Command("srun", "szybki", "-p", rec, "-entropy", "AN", "-prefix", prefix, dck)
-			cmd.Start()
-			defer cmd.Wait()
+			cmd.Run()
+			//defer cmd.Wait()
 		} else {
 			cmd := exec.Command("szybki", "-p", rec, "-entropy", "AN", "-prefix", prefix, dck)
 			cmd.Run()
 		}
-
 	}
-
 }
 
 func getBestReceptor(dck string) string {
