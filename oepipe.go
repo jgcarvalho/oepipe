@@ -40,14 +40,20 @@ func docking(receptorsDirPtr *string) {
 		prefix := outdir + strings.TrimSuffix(filepath.Base(cf), ".oeb.gz")
 		outfile := prefix + "_docked.oeb.gz"
 		scorefile := prefix + "_score.txt"
-		fmt.Println(outfile)
-		if distributed {
-			cmd := exec.Command("srun", "hybrid", "-receptor", *receptorsDirPtr+"/*", "-dbase", cf, "-docked_molecule_file", outfile, "-score_file", scorefile, "-dock_resolution", "High", "-num_poses", "25", "-save_component_scores", "-annotate_scores", "-prefix", prefix)
-			cmd.Run()
-			//defer cmd.Wait()
+		finfo, err := os.Stat(outfile)
+		if err != nil {
+			fmt.Println(outfile)
+			if distributed {
+				cmd := exec.Command("srun", "hybrid", "-receptor", *receptorsDirPtr+"/*", "-dbase", cf, "-docked_molecule_file", outfile, "-score_file", scorefile, "-dock_resolution", "High", "-num_poses", "25", "-save_component_scores", "-annotate_scores", "-prefix", prefix)
+				cmd.Run()
+				//defer cmd.Wait()
+			} else {
+				cmd := exec.Command("hybrid", "-receptor", *receptorsDirPtr+"/*", "-dbase", cf, "-docked_molecule_file", outfile, "-score_file", scorefile, "-dock_resolution", "High", "-num_poses", "25", "-save_component_scores", "-annotate_scores", "-prefix", prefix)
+				cmd.Run()
+			}
 		} else {
-			cmd := exec.Command("hybrid", "-receptor", *receptorsDirPtr+"/*", "-dbase", cf, "-docked_molecule_file", outfile, "-score_file", scorefile, "-dock_resolution", "High", "-num_poses", "25", "-save_component_scores", "-annotate_scores", "-prefix", prefix)
-			cmd.Run()
+			fmt.Println("Composto já \"docado\"!!")
+			fmt.Println(finfo)
 		}
 	}
 }
