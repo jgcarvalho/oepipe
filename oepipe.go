@@ -45,8 +45,9 @@ func docking(receptorsDirPtr *string) {
 			fmt.Println(outfile)
 			if distributed {
 				cmd := exec.Command("srun", "hybrid", "-receptor", *receptorsDirPtr+"/*", "-dbase", cf, "-docked_molecule_file", outfile, "-score_file", scorefile, "-dock_resolution", "High", "-num_poses", "25", "-save_component_scores", "-annotate_scores", "-prefix", prefix)
-				cmd.Run()
-				//defer cmd.Wait()
+				// cmd.Run()
+				cmd.Start()
+				defer cmd.Wait()
 			} else {
 				cmd := exec.Command("hybrid", "-receptor", *receptorsDirPtr+"/*", "-dbase", cf, "-docked_molecule_file", outfile, "-score_file", scorefile, "-dock_resolution", "High", "-num_poses", "25", "-save_component_scores", "-annotate_scores", "-prefix", prefix)
 				cmd.Run()
