@@ -126,6 +126,7 @@ func getBestReceptor(dck string) string {
 }
 
 func main() {
+	fmt.Println("Version: 0.1")
 	flag.BoolVar(&distributed, "distributed", false, "distributed execution?")
 	ligandsDirPtr := flag.String("l", "../Project/ligands", "ligands directory")
 	receptorsDirPtr := flag.String("r", "../Project/receptor/K", "receptors directory")
