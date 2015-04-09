@@ -69,8 +69,9 @@ func optimize(receptorsDirPtr *string) {
 		prefix := outdir + strings.TrimSuffix(filepath.Base(dck), "_docked.oeb.gz")
 		if distributed {
 			cmd := exec.Command("srun", "szybki", "-p", rec, "-in", dck, "-prefix", prefix, "-residue", "3", "-protein_elec", "PB", "-am1bcc")
-			cmd.Run()
-			//defer cmd.Wait()
+			// cmd.Run()
+			cmd.Start()
+			defer cmd.Wait()
 		} else {
 			cmd := exec.Command("szybki", "-p", rec, "-in", dck, "-prefix", prefix, "-residue", "3", "-protein_elec", "PB", "-am1bcc")
 			cmd.Run()
@@ -87,8 +88,9 @@ func entropyInSolution() {
 		fmt.Println(prefix)
 		if distributed {
 			cmd := exec.Command("srun", "szybki", "-entropy", "AN", "-sheffield", "-prefix", prefix, cf)
-			cmd.Run()
-			//defer cmd.Wait()
+			// cmd.Run()
+			cmd.Start()
+			defer cmd.Wait()
 		} else {
 			cmd := exec.Command("szybki", "-entropy", "AN", "-sheffield", "-prefix", prefix, cf)
 			cmd.Run()
@@ -106,8 +108,9 @@ func entropyBounded(receptorsDirPtr *string) {
 		prefix := outdir + strings.TrimSuffix(filepath.Base(dck), "_docked.oeb.gz")
 		if distributed {
 			cmd := exec.Command("srun", "szybki", "-p", rec, "-entropy", "AN", "-prefix", prefix, dck)
-			cmd.Run()
-			//defer cmd.Wait()
+			// cmd.Run()
+			cmd.Start()
+			defer cmd.Wait()
 		} else {
 			cmd := exec.Command("szybki", "-p", rec, "-entropy", "AN", "-prefix", prefix, dck)
 			cmd.Run()
