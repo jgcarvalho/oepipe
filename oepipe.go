@@ -22,7 +22,10 @@ func conformers(ligandsDirPtr *string) {
 		fmt.Println(outfile)
 		if distributed {
 			cmd := exec.Command("srun", "omega2", "-in", f, "-out", outfile, "-sdEnergy", "-ewindow", "25.0", "-maxconfs", "100000", "-rms", "0.3", "-prefix", prefix)
-			cmd.Run()
+			err := cmd.Run()
+			if err != nil {
+				fmt.Println("ERRO: ", err)
+			}
 			// cmd.Start()
 			// defer cmd.Wait()
 		} else {
@@ -46,7 +49,10 @@ func docking(receptorsDirPtr *string) {
 			fmt.Println(outfile)
 			if distributed {
 				cmd := exec.Command("srun", "hybrid", "-receptor", *receptorsDirPtr+"/*", "-dbase", cf, "-docked_molecule_file", outfile, "-score_file", scorefile, "-dock_resolution", "High", "-num_poses", "25", "-save_component_scores", "-annotate_scores", "-prefix", prefix)
-				cmd.Run()
+				err = cmd.Run()
+				if err != nil {
+					fmt.Println("ERRO: ", err)
+				}
 				// cmd.Start()
 				// defer cmd.Wait()
 			} else {
@@ -74,7 +80,10 @@ func optimize(receptorsDirPtr *string) {
 			fmt.Println(outfile)
 			if distributed {
 				cmd := exec.Command("srun", "szybki", "-p", rec, "-in", dck, "-out", outfile, "-prefix", prefix, "-residue", "3", "-protein_elec", "PB", "-am1bcc")
-				cmd.Run()
+				err = cmd.Run()
+				if err != nil {
+					fmt.Println("ERRO: ", err)
+				}
 				// cmd.Start()
 				// defer cmd.Wait()
 			} else {
@@ -97,7 +106,10 @@ func entropyInSolution() {
 		fmt.Println(prefix)
 		if distributed {
 			cmd := exec.Command("srun", "szybki", "-entropy", "AN", "-sheffield", "-prefix", prefix, cf)
-			cmd.Run()
+			err := cmd.Run()
+			if err != nil {
+				fmt.Println("ERRO: ", err)
+			}
 			// cmd.Start()
 			// defer cmd.Wait()
 		} else {
@@ -117,7 +129,10 @@ func entropyBounded(receptorsDirPtr *string) {
 		prefix := outdir + strings.TrimSuffix(filepath.Base(dck), "_docked.oeb.gz")
 		if distributed {
 			cmd := exec.Command("srun", "szybki", "-p", rec, "-entropy", "AN", "-prefix", prefix, dck)
-			cmd.Run()
+			err := cmd.Run()
+			if err != nil {
+				fmt.Println("ERRO: ", err)
+			}
 			// cmd.Start()
 			// defer cmd.Wait()
 		} else {
