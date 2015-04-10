@@ -21,11 +21,11 @@ func conformers(ligandsDirPtr *string) {
 		outfile := prefix + ".oeb.gz"
 		fmt.Println(outfile)
 		if distributed {
-			cmd := exec.Command("srun", "omega2", "-in", f, "-out", outfile, "-sdEnergy", "-ewindow", "25.0", "-maxconfs", "100000", "-rms", "0.1", "-prefix", prefix)
+			cmd := exec.Command("srun", "omega2", "-in", f, "-out", outfile, "-sdEnergy", "-ewindow", "25.0", "-maxconfs", "100000", "-rms", "0.3", "-prefix", prefix)
 			cmd.Run()
 			//defer cmd.Wait()
 		} else {
-			cmd := exec.Command("omega2", "-in", f, "-out", outfile, "-sdEnergy", "-ewindow", "25.0", "-maxconfs", "100000", "-rms", "0.1", "-prefix", prefix)
+			cmd := exec.Command("omega2", "-in", f, "-out", outfile, "-sdEnergy", "-ewindow", "25.0", "-maxconfs", "100000", "-rms", "0.3", "-prefix", prefix)
 			cmd.Run()
 		}
 	}
@@ -67,14 +67,22 @@ func optimize(receptorsDirPtr *string) {
 	for _, dck := range docked {
 		rec = getBestReceptor(dck)
 		prefix := outdir + strings.TrimSuffix(filepath.Base(dck), "_docked.oeb.gz")
-		if distributed {
-			cmd := exec.Command("srun", "szybki", "-p", rec, "-in", dck, "-prefix", prefix, "-residue", "3", "-protein_elec", "PB", "-am1bcc")
-			cmd.Run()
-			// cmd.Start()
-			// defer cmd.Wait()
+		outfile := prefix + "_optimized.oeb.gz"
+		finfo, err := os.Stat(outfile)
+		if err != nil {
+			fmt.Println(outfile)
+			if distributed {
+				cmd := exec.Command("srun", "szybki", "-p", rec, "-in", dck, "-out", outfile, "-prefix", prefix, "-residue", "3", "-protein_elec", "PB", "-am1bcc")
+				cmd.Run()
+				// cmd.Start()
+				// defer cmd.Wait()
+			} else {
+				cmd := exec.Command("szybki", "-p", rec, "-in", dck, "-out", outfile, "-prefix", prefix, "-residue", "3", "-protein_elec", "PB", "-am1bcc")
+				cmd.Run()
+			}
 		} else {
-			cmd := exec.Command("szybki", "-p", rec, "-in", dck, "-prefix", prefix, "-residue", "3", "-protein_elec", "PB", "-am1bcc")
-			cmd.Run()
+			fmt.Println("Composto já otimizado!!")
+			fmt.Println(finfo)
 		}
 	}
 }
@@ -159,6 +167,11 @@ func main() {
 		fmt.Println("Docking ligands")
 		docking(receptorsDirPtr)
 	}
+	if *optimizePtr {
+		fmt.Println("#############################################################")
+		fmt.Println("Optimizing bounded ligands")
+		optimize(receptorsDirPtr)
+	}
 	if *entropyISPtr {
 		fmt.Println("#############################################################")
 		fmt.Println("Estimating entropy in solution")
@@ -168,11 +181,6 @@ func main() {
 		fmt.Println("#############################################################")
 		fmt.Println("Estimating entropy bounded")
 		entropyBounded(receptorsDirPtr)
-	}
-	if *optimizePtr {
-		fmt.Println("#############################################################")
-		fmt.Println("Optimizing bounded ligands")
-		optimize(receptorsDirPtr)
 	}
 
 }
