@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync"
 )
 
 var distributed bool
@@ -48,7 +49,7 @@ func docking(receptorsDirPtr *string) {
 		if err != nil {
 			fmt.Println(outfile)
 			if distributed {
-				cmd := exec.Command("srun", "hybrid", "-receptor", *receptorsDirPtr+"/*", "-dbase", cf, "-docked_molecule_file", outfile, "-score_file", scorefile, "-dock_resolution", "High", "-num_poses", "25", "-save_component_scores", "-annotate_scores", "-prefix", prefix)
+				cmd := exec.Command("srun", "hybrid", "-receptor", *receptorsDirPtr+"/*", "-dbase", cf, " ", outfile, "-score_file", scorefile, "-dock_resolution", "High", "-num_poses", "25", "-save_component_scores", "-annotate_scores", "-prefix", prefix)
 				err = cmd.Run()
 				if err != nil {
 					fmt.Println("ERRO: ", err)
@@ -67,32 +68,51 @@ func docking(receptorsDirPtr *string) {
 }
 
 func optimize(receptorsDirPtr *string) {
+	var wg sync.WaitGroup
 	docked, _ := filepath.Glob("./docking/" + filepath.Base(*receptorsDirPtr) + "/*_docked.oeb.gz")
 	outdir := "./optimized/" + filepath.Base(*receptorsDirPtr) + "/"
 	os.MkdirAll(outdir, 0777)
 	var rec string
-	for _, dck := range docked {
-		rec = getBestReceptor(dck)
-		prefix := outdir + strings.TrimSuffix(filepath.Base(dck), "_docked.oeb.gz")
-		outfile := prefix + "_optimized.oeb.gz"
-		finfo, err := os.Stat(outfile)
-		if err != nil {
-			fmt.Println(outfile)
-			if distributed {
-				cmd := exec.Command("srun", "szybki", "-p", rec, "-in", dck, "-out", outfile, "-prefix", prefix, "-residue", "3", "-protein_elec", "PB", "-am1bcc")
+	if distributed {
+		for _, dck := range docked {
+			wg.Add(1)
+			go func(dck string) {
+				defer wg.Done()
+				rec = getBestReceptor(dck)
+				prefix := outdir + strings.TrimSuffix(filepath.Base(dck), "_docked.oeb.gz")
+				outfile := prefix + "_optimized.oeb.gz"
+				finfo, err := os.Stat(outfile)
+				if err != nil {
+					fmt.Println(outfile)
+					cmd := exec.Command("srun", "szybki", "-p", rec, "-in", dck, "-out", outfile, "-prefix", prefix, "-residue", "3", "-protein_elec", "PB")
+					err = cmd.Run()
+					if err != nil {
+						fmt.Println("ERRO: ", err)
+					}
+				} else {
+					fmt.Println("Composto já otimizado!!")
+					fmt.Println(finfo)
+				}
+			}(dck)
+		}
+		wg.Wait()
+	} else {
+		for _, dck := range docked {
+			rec = getBestReceptor(dck)
+			prefix := outdir + strings.TrimSuffix(filepath.Base(dck), "_docked.oeb.gz")
+			outfile := prefix + "_optimized.oeb.gz"
+			finfo, err := os.Stat(outfile)
+			if err != nil {
+				fmt.Println(outfile)
+				cmd := exec.Command("szybki", "-p", rec, "-in", dck, "-out", outfile, "-prefix", prefix, "-residue", "3", "-protein_elec", "PB")
 				err = cmd.Run()
 				if err != nil {
 					fmt.Println("ERRO: ", err)
 				}
-				// cmd.Start()
-				// defer cmd.Wait()
 			} else {
-				cmd := exec.Command("szybki", "-p", rec, "-in", dck, "-out", outfile, "-prefix", prefix, "-residue", "3", "-protein_elec", "PB", "-am1bcc")
-				cmd.Run()
+				fmt.Println("Composto já otimizado!!")
+				fmt.Println(finfo)
 			}
-		} else {
-			fmt.Println("Composto já otimizado!!")
-			fmt.Println(finfo)
 		}
 	}
 }
