@@ -46,6 +46,7 @@ func docking(receptorsDirPtr *string) {
 		for _, cf := range conformers {
 			wg.Add(1)
 			go func(cf string) {
+				defer wg.Done()
 				prefix := outdir + strings.TrimSuffix(filepath.Base(cf), ".oeb.gz")
 				outfile := prefix + "_docked.oeb.gz"
 				scorefile := prefix + "_score.txt"
