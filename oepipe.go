@@ -98,17 +98,18 @@ func optimize(receptorsDirPtr *string) {
 				prefix := outdir + strings.TrimSuffix(filepath.Base(dck), "_docked.oeb.gz")
 				outfile := prefix + "_optimized.oeb.gz"
 				failFile := prefix + ".FAIL.oeb"
-				finfo, err := os.Stat(failFile)
-				if err != nil {
+				finfoout, err1 := os.Stat(outfile)
+				finfofail, err2 := os.Stat(failFile)
+				if err1 != nil || err2 == nil {
 					fmt.Println(outfile)
 					cmd := exec.Command("srun", "szybki", "-p", rec, "-in", dck, "-out", outfile, "-prefix", prefix, "-residue", "2", "-protein_elec", "PB")
-					err = cmd.Run()
+					err := cmd.Run()
 					if err != nil {
 						fmt.Println("ERRO: ", err)
 					}
 				} else {
 					fmt.Println("Composto já otimizado!!")
-					fmt.Println(finfo)
+					fmt.Println(finfoout, finfofail)
 				}
 			}(dck)
 		}
