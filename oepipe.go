@@ -97,7 +97,8 @@ func optimize(receptorsDirPtr *string) {
 				rec = getBestReceptor(dck)
 				prefix := outdir + strings.TrimSuffix(filepath.Base(dck), "_docked.oeb.gz")
 				outfile := prefix + "_optimized.oeb.gz"
-				finfo, err := os.Stat(outfile)
+				failFile := prefix + ".FAIL.oeb"
+				finfo, err := os.Stat(failFile)
 				if err != nil {
 					fmt.Println(outfile)
 					cmd := exec.Command("srun", "szybki", "-p", rec, "-in", dck, "-out", outfile, "-prefix", prefix, "-residue", "2", "-protein_elec", "PB")
