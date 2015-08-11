@@ -53,7 +53,7 @@ func docking(receptorsDirPtr *string) {
 				finfo, err := os.Stat(outfile)
 				if err != nil {
 					fmt.Println(outfile)
-					cmd := exec.Command("srun", "hybrid", "-receptor", *receptorsDirPtr+"/*", "-dbase", cf, "-docked_molecule_file", outfile, "-score_file", scorefile, "-dock_resolution", "High", "-num_poses", "25", "-save_component_scores", "-annotate_scores", "-prefix", prefix)
+					cmd := exec.Command("srun", "hybrid", "-receptor", *receptorsDirPtr+"/*.oeb.gz", "-dbase", cf, "-docked_molecule_file", outfile, "-score_file", scorefile, "-dock_resolution", "High", "-num_poses", "25", "-save_component_scores", "-annotate_scores", "-prefix", prefix)
 					err = cmd.Run()
 					if err != nil {
 						fmt.Println("ERRO: ", err)
@@ -73,8 +73,10 @@ func docking(receptorsDirPtr *string) {
 			finfo, err := os.Stat(outfile)
 			if err != nil {
 				fmt.Println(outfile)
-				cmd := exec.Command("hybrid", "-receptor", *receptorsDirPtr+"/*", "-dbase", cf, "-docked_molecule_file", outfile, "-score_file", scorefile, "-dock_resolution", "High", "-num_poses", "25", "-save_component_scores", "-annotate_scores", "-prefix", prefix)
+				cmd := exec.Command("hybrid", "-receptor", *receptorsDirPtr+"/*.oeb.gz", "-dbase", cf, "-docked_molecule_file", outfile, "-score_file", scorefile, "-dock_resolution", "High", "-num_poses", "25", "-save_component_scores", "-annotate_scores", "-prefix", prefix)
+				fmt.Println("RODANDO")
 				cmd.Run()
+				fmt.Println("ACABOU")
 			} else {
 				fmt.Println("Composto já \"docado\"!!")
 				fmt.Println(finfo)
